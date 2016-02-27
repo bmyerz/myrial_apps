@@ -1,3 +1,0 @@
-mat = scan(matrix);
-
-g = select COUNT(row) from mat;

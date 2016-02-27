@@ -1,6 +1,0 @@
-mat = scan(matrix);
-
-epsilon = [0.001];
-
-mult = select *epsilon * M.value from mat M, epsilon
-    where 
