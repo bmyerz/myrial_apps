@@ -1,0 +1,45 @@
+No handlers could be found for logger "raco.backends.radish.radish"
+Sequence
+    StoreTemp(matA)[Scan(public:adhoc:matrix)]
+    StoreTemp(epsilon)[Apply(_COLUMN0_=0.001)[SingletonRelation]]
+    StoreTemp(prunelimit)[Apply(_COLUMN0_=1e-05)[SingletonRelation]]
+    StoreTemp(newchaos)[Apply(_COLUMN0_=1000)[SingletonRelation]]
+    DO
+        StoreTemp(oldchaos)[ScanTemp(newchaos,[('_COLUMN0_', 'LONG_TYPE')])]
+        StoreTemp(prunedA)[Apply(row=row,col=col,value=value)[Select((value > $3))[CrossProduct[Apply(row=row,col=col,value=(value / colsum))[Select((col = col))[CrossProduct[Apply(row=row,col=col,value=(value * value))[Apply(row=$0,col=$1,value=$2)[GroupBy(row,col; SUM((value * value)))[Select((col = row))[CrossProduct[ScanTemp(matA,[('row', 'LONG_TYPE'), ('col', 'LONG_TYPE'), ('value', 'DOUBLE_TYPE')]),ScanTemp(matA,[('row', 'LONG_TYPE'), ('col', 'LONG_TYPE'), ('value', 'DOUBLE_TYPE')])]]]]],Apply(col=$0,colsum=$1)[GroupBy(col; SUM(value))[Apply(row=row,col=col,value=(value * value))[Apply(row=$0,col=$1,value=$2)[GroupBy(row,col; SUM((value * value)))[Select((col = row))[CrossProduct[ScanTemp(matA,[('row', 'LONG_TYPE'), ('col', 'LONG_TYPE'), ('value', 'DOUBLE_TYPE')]),ScanTemp(matA,[('row', 'LONG_TYPE'), ('col', 'LONG_TYPE'), ('value', 'DOUBLE_TYPE')])]]]]]]]]]],ScanTemp(prunelimit,[('_COLUMN0_', 'DOUBLE_TYPE')])]]]]
+        StoreTemp(newchaos)[Apply(_COLUMN0_=$0)[GroupBy(; MAX((maxVal - sumSquare)))[Select((col = col))[CrossProduct[Apply(col=$0,maxVal=$1)[GroupBy(col; MAX(value))[ScanTemp(prunedA,[('row', 'LONG_TYPE'), ('col', 'LONG_TYPE'), ('value', 'DOUBLE_TYPE')])]],Apply(col=$0,sumSquare=$1)[GroupBy(col; SUM((value * value)))[ScanTemp(prunedA,[('row', 'LONG_TYPE'), ('col', 'LONG_TYPE'), ('value', 'DOUBLE_TYPE')])]]]]]]]
+        StoreTemp(matA)[ScanTemp(prunedA,[('row', 'LONG_TYPE'), ('col', 'LONG_TYPE'), ('value', 'DOUBLE_TYPE')])]
+    WHILE
+        Apply(_COLUMN0_=(($1 - $0) > $2))[CrossProduct[CrossProduct[ScanTemp(newchaos,[('_COLUMN0_', 'DOUBLE_TYPE')]),ScanTemp(oldchaos,[('_COLUMN0_', 'LONG_TYPE')])],ScanTemp(epsilon,[('_COLUMN0_', 'DOUBLE_TYPE')])]]
+    Store(public:adhoc:OUTPUT)[ScanTemp(newchaos,[('_COLUMN0_', 'DOUBLE_TYPE')])]
+GrappaSequence
+    GrappaStoreTemp(matA)[GrappaMemoryScan(global_array, None) [GrappaFileScan(public:adhoc:matrix)]]
+    GrappaStoreTemp(epsilon)[GrappaApply(_COLUMN0_=0.001)[SingletonRelation]]
+    GrappaStoreTemp(prunelimit)[GrappaApply(_COLUMN0_=1e-05)[SingletonRelation]]
+    GrappaStoreTemp(newchaos)[GrappaApply(_COLUMN0_=1000)[SingletonRelation]]
+    DO
+        GrappaStoreTemp(oldchaos)[GrappaMemoryScan(symmetric_array, newchaos) [GrappaNullInput(newchaos)]]
+        GrappaStoreTemp(prunedA)[GrappaApply(row=row,col=col,value=value)[GrappaSelect(($2 > $3))[CrossProduct[GrappaApply(row=row,col=col,value=(value / colsum))[GrappaApply(row=$0,col=$1,value=$2,colsum=$4)[GrappaHashJoin(($1 = $3))[GrappaApply(row=$0,col=$1,value=($2 * $2))[GrappaGroupBy(row,col; SUM($2))[GrappaApply(row=$0,col1=$2,_COLUMN2_=(value * value))[GrappaApply(row=$0,value=$2,col1=$4,value1=$5)[GrappaHashJoin(($1 = $3))[GrappaMemoryScan(symmetric_array, matA) [GrappaNullInput(matA)],GrappaMemoryScan(symmetric_array, matA) [GrappaNullInput(matA)]]]]]],GrappaApply(col=$0,colsum=$1)[GrappaGroupBy(col; SUM(value))[GrappaApply(col=$1,value=($2 * $2))[GrappaGroupBy(row,col; SUM($2))[GrappaApply(row=$0,col1=$2,_COLUMN2_=(value * value))[GrappaApply(row=$0,value=$2,col1=$4,value1=$5)[GrappaHashJoin(($1 = $3))[GrappaMemoryScan(symmetric_array, matA) [GrappaNullInput(matA)],GrappaMemoryScan(symmetric_array, matA) [GrappaNullInput(matA)]]]]]]]]]]],GrappaMemoryScan(symmetric_array, prunelimit) [GrappaNullInput(prunelimit)]]]]]
+        GrappaStoreTemp(newchaos)[GrappaGroupBy(; MAX($0))[GrappaApply(_COLUMN0_=(maxVal - sumSquare))[GrappaApply(maxVal=$1,sumSquare=$3)[GrappaHashJoin(($0 = $2))[GrappaApply(col=$0,maxVal=$1)[GrappaGroupBy(col; MAX(value))[GrappaApply(col=$1,value=$2)[GrappaMemoryScan(symmetric_array, prunedA) [GrappaNullInput(prunedA)]]]],GrappaApply(col=$0,sumSquare=$1)[GrappaGroupBy(col; SUM($1))[GrappaApply(col=$1,_COLUMN1_=(value * value))[GrappaMemoryScan(symmetric_array, prunedA) [GrappaNullInput(prunedA)]]]]]]]]]
+        GrappaStoreTemp(matA)[GrappaMemoryScan(symmetric_array, prunedA) [GrappaNullInput(prunedA)]]
+    WHILE
+        GrappaApply(_COLUMN0_=(($1 - $0) > $2))[CrossProduct[CrossProduct[GrappaMemoryScan(symmetric_array, newchaos) [GrappaNullInput(newchaos)],GrappaMemoryScan(symmetric_array, oldchaos) [GrappaNullInput(oldchaos)]],GrappaMemoryScan(symmetric_array, epsilon) [GrappaNullInput(epsilon)]]]
+    GrappaStore(public:adhoc:OUTPUT)[GrappaMemoryScan(symmetric_array, newchaos) [GrappaNullInput(newchaos)]]
+Traceback (most recent call last):
+  File "test.py", line 46, in <module>
+    compile(p)
+  File "/Users/brandon/escience/datalogcompiler/raco/compile.py", line 82, in compile
+    body = lang.body(expr.compilePipeline(**kwargs))
+  File "/Users/brandon/escience/datalogcompiler/raco/pipelines.py", line 372, in compilePipeline
+    self.produce(state)
+  File "/Users/brandon/escience/datalogcompiler/raco/backends/radish/radish.py", line 1588, in produce
+    c.produce(state)
+  File "/Users/brandon/escience/datalogcompiler/raco/backends/radish/radish.py", line 1600, in produce
+    c.produce(state)
+  File "/Users/brandon/escience/datalogcompiler/raco/backends/radish/radish.py", line 1395, in produce
+    self.input.produce(state)
+  File "/Users/brandon/escience/datalogcompiler/raco/backends/cpp/cppcommon.py", line 469, in produce
+    self.input.produce(state)
+  File "/Users/brandon/escience/datalogcompiler/raco/backends/cpp/cppcommon.py", line 409, in produce
+    self.input.produce(state)
+AttributeError: 'CrossProduct' object has no attribute 'produce'

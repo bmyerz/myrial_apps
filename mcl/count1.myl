@@ -1,0 +1,5 @@
+mat = scan(matrix);
+
+g = select COUNT(row) from mat;
+
+store(g, out);
