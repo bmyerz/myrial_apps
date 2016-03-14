@@ -1,0 +1,9 @@
+i = [4];
+m = scan(matrix);
+
+do
+    i = [from i emit *i - 1];
+    m = UNIONALL(m, m);
+while [from i where *i > 0 emit *i];
+    
+store(m, OUTPUT); 
