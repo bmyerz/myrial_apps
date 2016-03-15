@@ -5,8 +5,8 @@ epsilon = [0.001];
 prunelimit = [0.00001];
 
 -- initialize oldChaos and newChaos for stop condition.
-oldchaos = [1000];
-newchaos = [1000];
+oldchaos = [1000.0];
+newchaos = [1000.0];
 
 -- while there is an epsilon improvement
 do 
@@ -51,4 +51,5 @@ do
 	continue = [from newchaos, oldchaos emit (*oldchaos - *newchaos) > *epsilon];
 while continue;
 
-store (newchaos, OUTPUT);
+--store (newchaos, OUTPUT);
+store (matA, OUTPUT);
